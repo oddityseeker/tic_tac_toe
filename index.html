@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-Нолики</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2em;
+        }
+
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+            color: #aaa;
+        }
+
+        #reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #reset:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Крестики-Нолики</h1>
+    <div id="game">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+    <button id="reset">Сбросить игру</button>
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const resetButton = document.getElementById('reset');
+        let currentPlayer = 'X';
+        let board = Array(9).fill(null);
+
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6],
+        ];
+
+        // Обработка кликов по ячейкам
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                const index = cell.getAttribute('data-index');
+
+                // Если клетка занята, ничего не делаем
+                if (board[index] || checkWinner()) return;
+
+                // Обновляем доску и интерфейс
+                board[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.classList.add('taken');
+
+                // Проверяем победителя или ничью
+                if (checkWinner()) {
+                    alert(`${currentPlayer} победил!`);
+                } else if (board.every(cell => cell)) {
+                    alert('Ничья!');
+                }
+
+                // Переключаем игрока
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            });
+        });
+
+        // Проверка победителя
+        function checkWinner() {
+            return winningCombinations.some(combination => {
+                return combination.every(index => board[index] === currentPlayer);
+            });
+        }
+
+        // Сброс игры
+        resetButton.addEventListener('click', () => {
+            board.fill(null);
+            currentPlayer = 'X';
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('taken');
+            });
+        });
+    </script>
+</body>
+</html>
