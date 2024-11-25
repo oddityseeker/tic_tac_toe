@@ -33,12 +33,20 @@
             background-color: #fff;
             border: 2px solid #ccc;
             font-size: 2em;
+            font-weight: bold;
             cursor: pointer;
         }
 
         .cell.taken {
             cursor: not-allowed;
-            color: #aaa;
+        }
+
+        .cell.X {
+            color: #007BFF; /* Синий для крестиков */
+        }
+
+        .cell.O {
+            color: #FF5733; /* Оранжевый для ноликов */
         }
 
         #reset {
@@ -93,31 +101,88 @@
             cell.addEventListener('click', () => {
                 const index = cell.getAttribute('data-index');
 
-                // Если клетка занята, ничего не делаем
                 if (board[index] || checkWinner()) return;
 
-                // Обновляем доску и интерфейс
-                board[index] = currentPlayer;
-                cell.textContent = currentPlayer;
-                cell.classList.add('taken');
+                // Ход игрока
+                makeMove(index, currentPlayer);
+                if (checkWinner() || board.every(cell => cell)) return;
 
-                // Проверяем победителя или ничью
-                if (checkWinner()) {
-                    alert(`${currentPlayer} победил!`);
-                } else if (board.every(cell => cell)) {
-                    alert('Ничья!');
-                }
-
-                // Переключаем игрока
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                // Ход ИИ
+                setTimeout(() => {
+                    const bestMove = findBestMove();
+                    makeMove(bestMove, 'O');
+                    checkWinner();
+                }, 500);
             });
         });
 
-        // Проверка победителя
+        // Ход игрока или ИИ
+        function makeMove(index, player) {
+            board[index] = player;
+            const cell = document.querySelector(`.cell[data-index='${index}']`);
+            cell.textContent = player;
+            cell.classList.add('taken', player);
+            currentPlayer = player === 'X' ? 'O' : 'X';
+        }
+
+        // Поиск победителя
         function checkWinner() {
-            return winningCombinations.some(combination => {
-                return combination.every(index => board[index] === currentPlayer);
-            });
+            const winner = winningCombinations.find(combination =>
+                combination.every(index => board[index] === currentPlayer)
+            );
+
+            if (winner) {
+                alert(`${currentPlayer} победил!`);
+                return true;
+            }
+
+            if (board.every(cell => cell)) {
+                alert('Ничья!');
+                return true;
+            }
+
+            return false;
+        }
+
+        // Нахождение лучшего хода (упрощённый алгоритм)
+        function findBestMove() {
+            // Попробуем победить
+            for (let i = 0; i < board.length; i++) {
+                if (!board[i]) {
+                    board[i] = 'O';
+                    if (checkPotentialWin('O')) {
+                        board[i] = null;
+                        return i;
+                    }
+                    board[i] = null;
+                }
+            }
+
+            // Заблокируем победу игрока
+            for (let i = 0; i < board.length; i++) {
+                if (!board[i]) {
+                    board[i] = 'X';
+                    if (checkPotentialWin('X')) {
+                        board[i] = null;
+                        return i;
+                    }
+                    board[i] = null;
+                }
+            }
+
+            // Если нет угрозы или победы, займём центральную клетку
+            if (!board[4]) return 4;
+
+            // Иначе займём любую свободную клетку
+            for (let i = 0; i < board.length; i++) {
+                if (!board[i]) return i;
+            }
+        }
+
+        function checkPotentialWin(player) {
+            return winningCombinations.some(combination =>
+                combination.every(index => board[index] === player)
+            );
         }
 
         // Сброс игры
@@ -126,7 +191,7 @@
             currentPlayer = 'X';
             cells.forEach(cell => {
                 cell.textContent = '';
-                cell.classList.remove('taken');
+                cell.className = 'cell';
             });
         });
     </script>
